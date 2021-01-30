@@ -15,13 +15,20 @@ class MainPage extends StatelessWidget {
         appBar: AppBar(
           backgroundColor: Colors.red[900],
           title: Text('Firestore App'),
+          // Single Retrive
+          // StreamBuilder<DocumentSnapshot>(
+          //   stream: users.doc("3lxbHfUvIov4RB0MoWFS").snapshots(),
+          //   builder: (context, snapshot) {
+          //     return Text(snapshot.data['age'].toString());
+          //   }
+          // )
         ),
         backgroundColor: Colors.white,
         body: Stack(
           children: [
             ListView(
               children: [
-                //One Time Retrieve
+                // One Time Retrieve
                 // FutureBuilder<QuerySnapshot>(
                 //     future: users.get(),
                 //     builder: (_, snapshot) {
@@ -39,13 +46,25 @@ class MainPage extends StatelessWidget {
 
                 //Sync Retrieve
                 StreamBuilder<QuerySnapshot>(
-                    stream: users.snapshots(),
+                    stream:
+                        //Ordering
+                        users.orderBy("age", descending: false).snapshots(),
+                    //Filtering
+                    //users.where("age",isGreaterThan: 23).snapshots(),
                     builder: (_, snapshot) {
                       if (snapshot.hasData) {
                         return Column(
                           children: snapshot.data.docs
-                              .map((e) =>
-                                  ItemCard(e.data()['name'], e.data()['age']))
+                              .map((e) => ItemCard(
+                                    e.data()['name'],
+                                    e.data()['age'],
+                                    onUpdate: () {
+                                      users.doc(e.id).update({'age':  e.data()['age']+1});
+                                    },
+                                    onDelete: () {
+                                      users.doc(e.id).delete();
+                                    }
+                                  ))
                               .toList(),
                         );
                       } else {
